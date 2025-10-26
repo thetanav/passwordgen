@@ -1,17 +1,22 @@
 package main
 
 import (
-    "fmt"
-    "math/big"
-    "os"
-    "crypto/rand"
-    "strings"
+	"crypto/rand"
+	"fmt"
+	"math/big"
+	"os"
+	"strconv"
+	"strings"
 
-    tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type model struct {
-    password string
+    password    string
+    lengthInput textinput.Model
+    view        string // "settings" or "main"
+    length      int    // Cached length for refreshes
 }
 
 const (
@@ -46,62 +51,112 @@ func generatePassword(length int) (string, error) {
     return string(password), nil
 }
 
+func initialModel() model {
+    ti := textinput.New()
+    ti.Placeholder = "len"
+    ti.Focus()
+    ti.Prompt = "Length: "
+    ti.CharLimit = 3 // Keep it short
+
+    return model{
+        lengthInput: ti,
+        view:        "settings",
+        length:      16, // Default
+    }
+}
+
 func (m model) Init() tea.Cmd {
-    // Just return `nil`, which means "no I/O right now, please."
-    return nil
+    return textinput.Blink
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-    switch msg := msg.(type) {
+    var cmd tea.Cmd
 
+    switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
-
         case "ctrl+c", "q":
             return m, tea.Quit
 
-        case "r":
-            newPass, err := generatePassword(16)
-            if err == nil {
+        case "enter":
+            if m.view == "settings" {
+                inputLen, err := strconv.Atoi(m.lengthInput.Value())
+                if err != nil || inputLen < 1 {
+                    inputLen = 16 // Default on invalid
+                }
+                m.length = inputLen
+                newPass, err := generatePassword(m.length)
+                if err != nil {
+                    m.password = "Error generating password"
+                } else {
+                    m.password = newPass
+                }
+                m.view = "main"
+                m.lengthInput.Blur() // Unfocus
+                return m, nil
+            }
+
+        case "esc":
+            if m.view == "settings" {
+                // Use default and go to main
+                newPass, _ := generatePassword(16)
                 m.password = newPass
-            } else {
-                m.password = "Error generating password"
+                m.view = "main"
+                m.lengthInput.Blur()
+                return m, nil
+            }
+
+        case "r":
+            if m.view == "main" {
+                newPass, err := generatePassword(m.length)
+                if err != nil {
+                    m.password = "Error generating password"
+                } else {
+                    m.password = newPass
+                }
             }
 
         case "c":
-            // TODO: Implement copy to clipboard (requires external library like github.com/atotto/clipboard)
-            // For now, just print it
-            fmt.Println("Password (for manual copy):", m.password)
+            if m.view == "main" && m.password != "" {
+                // TODO: Real clipboard with github.com/atotto/clipboard
+                fmt.Println("Password (for manual copy):", m.password)
+            }
         }
     }
 
-    return m, nil
-}
+    // Delegate to textinput if in settings view
+    if m.view == "settings" {
+        m.lengthInput, cmd = m.lengthInput.Update(msg)
+        return m, cmd
+    }
+
+    return m, cmd
+} // <- CRITICAL: This closing brace ends Update() – ensure it's here!
 
 func (m model) View() string {
-    // The header
-    s := "Password Generator\n\n"
+    var s string
 
-    // Iterate over our choices
+    if m.view == "settings" {
+        s = "Password Generator - Set Length\n\n"
+        s += m.lengthInput.View() + "\n\n"
+        s += "Press Enter to generate, Esc for default (16)."
+        return s
+    }
+
+    // Main view
+    s = "Password Generator\n\n"
     s += "The password is: `"
     s += m.password
-    s += "`\n"
+    s += "`\n\n"
+    s += fmt.Sprintf("Current length: %d\n", m.length)
 
-    // The footer
-    s += "\nHelp q to quit, r to refresh, c to copy.\n"
+    s += "\nHelp: q to quit, r to refresh, c to copy.\n"
 
-    // Send the UI for rendering
     return s
 }
 
 func main() {
-    initialPass, err := generatePassword(16)
-    if err != nil {
-        initialPass = "Error generating initial password"
-    }
-    m := model{
-        password: initialPass,
-    }
+    m := initialModel()
     p := tea.NewProgram(m)
     if _, err := p.Run(); err != nil {
         fmt.Printf("Alas, there's been an error: %v", err)
