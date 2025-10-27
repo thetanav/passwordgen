@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -118,8 +119,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
         case "c":
             if m.view == "main" && m.password != "" {
-                // TODO: Real clipboard with github.com/atotto/clipboard
-                fmt.Println("Password (for manual copy):", m.password)
+                err := clipboard.WriteAll(m.password)
+                if err != nil {
+                    panic(err)
+                }
             }
         }
     }
