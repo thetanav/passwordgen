@@ -64,7 +64,7 @@ example.com,user@example.com,generated_password
 ## Installation
 
 ```bash
-go build -o passwordgen main.go
+go build -o passwordgen ./cmd/passwordgen
 ```
 
 ## Dependencies
@@ -73,3 +73,36 @@ go build -o passwordgen main.go
 - [Bubbles](https://github.com/charmbracelet/bubbles) - Bubbletea components
 - [Clipboard](https://github.com/atotto/clipboard) - Cross-platform clipboard access
 - [Lipgloss](https://github.com/charmbracelet/lipgloss) - Terminal styling
+
+## Project Structure
+
+```
+my-cli-app/
+├── cmd/passwordgen/          # Main application entry point
+├── internal/
+│   ├── app/                  # TUI application logic
+│   │   ├── model.go         # Application state and model
+│   │   ├── update.go        # Event handling and updates
+│   │   └── view.go          # UI rendering
+│   └── password/            # Password generation and storage
+│       ├── generator.go     # Password generation functions
+│       └── csv.go           # CSV file operations
+├── go.mod
+├── go.sum
+├── README.md
+├── CONTRIBUTING.md
+└── LICENSE
+```
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Development setup
+- Code style guidelines
+- Pull request process
+- Testing requirements
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
