@@ -37,7 +37,7 @@ func (m Model) View() string {
 			s.WriteString("\n")
 		}
 		s.WriteString("\n")
-		s.WriteString(infoStyle.Render("[↑/↓] - navigate • [Enter] to select"))
+		s.WriteString(infoStyle.Render("[↑/↓] nnavigate • [Enter] to select"))
 		s.WriteString("\n")
 
 	case ViewSave:
@@ -49,7 +49,7 @@ func (m Model) View() string {
 		s.WriteString("\n\n")
 		s.WriteString(successStyle.Render("Password copied to clipboard"))
 		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render("[Tab] - switch fields • [Enter] - save"))
+		s.WriteString(infoStyle.Render("[Tab] switch fields • [Enter] save"))
 
 	case ViewMain:
 		s.WriteString(titleStyle.Render(createHeader("Secure Password Generator")))
@@ -62,7 +62,7 @@ func (m Model) View() string {
 			s.WriteString("\n\n")
 		}
 
-		s.WriteString(infoStyle.Render("[R] - refresh • [C] - copy • [S] - save & copy"))
+		s.WriteString(infoStyle.Render("[R] refresh • [C] copy • [S] save & copy"))
 
 	case ViewList:
 		s.WriteString(titleStyle.Render(createHeader("Saved Passwords")))
@@ -110,7 +110,7 @@ func (m Model) View() string {
 
 		s.WriteString(boxStyle.Width(70).Render(table.String()))
 		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render("[↑/↓] - navigate • [Enter] - copy"))
+		s.WriteString(infoStyle.Render("[↑/↓] navigate • [Enter] copy"))
 
 	case ViewSettings:
 		s.WriteString(titleStyle.Render(createHeader("Password Settings")))
@@ -134,7 +134,7 @@ func (m Model) View() string {
 			s.WriteString("\n")
 		}
 		s.WriteString("\n")
-		s.WriteString(infoStyle.Render("[↑/↓] - navigate • [Space] - toggle • [Enter] - save"))
+		s.WriteString(infoStyle.Render("[↑/↓] navigate • [Space] toggle • [Enter] save"))
 	}
 
 	return s.String()

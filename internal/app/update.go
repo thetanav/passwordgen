@@ -9,7 +9,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"my-cli-app/internal/password"
+	"passwordgen/internal/password"
 )
 
 func (m Model) Init() tea.Cmd {

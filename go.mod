@@ -1,4 +1,4 @@
-module my-cli-app
+module passwordgen
 
 go 1.25.3
 

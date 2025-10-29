@@ -20,8 +20,7 @@ Thank you for your interest in contributing to the Secure Password Manager! This
 ### Project Structure
 
 ```
-my-cli-app/
-├── cmd/passwordgen/          # Main application entry point
+passwordgen/
 ├── internal/
 │   ├── app/                  # TUI application logic
 │   │   ├── model.go         # Application state and model

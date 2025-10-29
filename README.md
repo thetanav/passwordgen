@@ -77,8 +77,7 @@ go build -o passwordgen ./cmd/passwordgen
 ## Project Structure
 
 ```
-my-cli-app/
-├── cmd/passwordgen/          # Main application entry point
+passwordgen/
 ├── internal/
 │   ├── app/                  # TUI application logic
 │   │   ├── model.go         # Application state and model

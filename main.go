@@ -5,7 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"my-cli-app/internal/app"
+	"passwordgen/internal/app"
 )
 
 func main() {
