@@ -9,9 +9,22 @@ import (
 func (m Model) View() string {
 	var s strings.Builder
 	s.WriteString("\n")
+
+	// Helper function to create header with title and status
+	createHeader := func(title string) string {
+		if m.StatusMessage != "" && time.Now().Before(m.StatusExpiry) {
+			// Use normal text styling (no color, normal weight)
+			styledMsg := "[" + m.StatusMessage + "]"
+			// Create a line with title left-aligned and status right-aligned
+			line := fmt.Sprintf("%-50s%s", title, styledMsg)
+			return line
+		}
+		return title
+	}
+
 	switch m.CurrentView {
 	case ViewWelcome:
-		s.WriteString(titleStyle.Render("Secure Password Manager"))
+		s.WriteString(titleStyle.Render(createHeader("Secure Password Manager")))
 		s.WriteString("\n\n")
 
 		options := []string{"1. Generate New Password", "2. View Saved Passwords", "3. Settings", "4. Quit Application"}
@@ -24,11 +37,11 @@ func (m Model) View() string {
 			s.WriteString("\n")
 		}
 		s.WriteString("\n")
-		s.WriteString(infoStyle.Render("Use arrow keys or numbers to navigate • [Enter] to select"))
+		s.WriteString(infoStyle.Render("[↑/↓] - navigate • [Enter] to select"))
 		s.WriteString("\n")
 
 	case ViewSave:
-		s.WriteString(titleStyle.Render("Save Password"))
+		s.WriteString(titleStyle.Render(createHeader("Save Password")))
 		s.WriteString("\n\n")
 		s.WriteString(m.SiteInput.View())
 		s.WriteString("\n")
@@ -36,10 +49,10 @@ func (m Model) View() string {
 		s.WriteString("\n\n")
 		s.WriteString(successStyle.Render("Password copied to clipboard"))
 		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render("Press [Tab] to switch fields • [Enter] to save • [Esc] to main menu"))
+		s.WriteString(infoStyle.Render("[Tab] - switch fields • [Enter] - save"))
 
 	case ViewMain:
-		s.WriteString(titleStyle.Render("Secure Password Generator"))
+		s.WriteString(titleStyle.Render(createHeader("Secure Password Generator")))
 		s.WriteString("\n\n")
 
 		if m.Password != "" {
@@ -49,10 +62,10 @@ func (m Model) View() string {
 			s.WriteString("\n\n")
 		}
 
-		s.WriteString(infoStyle.Render("Press [R] to refresh • [C] to copy • [S] to save & copy • [Esc] to main menu"))
+		s.WriteString(infoStyle.Render("[R] - refresh • [C] - copy • [S] - save & copy"))
 
 	case ViewList:
-		s.WriteString(titleStyle.Render("Saved Passwords"))
+		s.WriteString(titleStyle.Render(createHeader("Saved Passwords")))
 		s.WriteString("\n\n")
 		s.WriteString(m.FilterInput.View())
 		s.WriteString("\n\n")
@@ -97,10 +110,10 @@ func (m Model) View() string {
 
 		s.WriteString(boxStyle.Width(70).Render(table.String()))
 		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render("Press [↑/↓] to navigate • [Enter] to copy • [Esc] to menu"))
+		s.WriteString(infoStyle.Render("[↑/↓] - navigate • [Enter] - copy"))
 
 	case ViewSettings:
-		s.WriteString(titleStyle.Render("Password Settings"))
+		s.WriteString(titleStyle.Render(createHeader("Password Settings")))
 		s.WriteString("\n\n")
 		s.WriteString(m.LengthInput.View())
 		s.WriteString("\n\n")
@@ -121,18 +134,7 @@ func (m Model) View() string {
 			s.WriteString("\n")
 		}
 		s.WriteString("\n")
-		s.WriteString(infoStyle.Render("Press [↑/↓] to navigate • [Space] to toggle • [Enter] to save • [Esc] to main menu"))
-	}
-
-	// Add status message if present
-	if m.StatusMessage != "" && time.Now().Before(m.StatusExpiry) {
-		s.WriteString("\n")
-		if strings.Contains(m.StatusMessage, "failed") || strings.Contains(m.StatusMessage, "Error") || strings.Contains(m.StatusMessage, "cannot") {
-			s.WriteString(errorStyle.Render(m.StatusMessage))
-		} else {
-			s.WriteString(successStyle.Render(m.StatusMessage))
-		}
-		s.WriteString("\n")
+		s.WriteString(infoStyle.Render("[↑/↓] - navigate • [Space] - toggle • [Enter] - save"))
 	}
 
 	return s.String()

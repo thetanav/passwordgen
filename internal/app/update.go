@@ -160,16 +160,16 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		siteName := strings.TrimSpace(m.SiteInput.Value())
 		username := strings.TrimSpace(m.UsernameInput.Value())
 		if siteName == "" {
-			return m, m.setStatus("Site name cannot be empty")
+			return m, m.setStatus("Empty site name")
 		}
 
 		if err := password.SavePasswordToCSV(siteName, username, m.Password); err != nil {
-			return m, m.setStatus("Save failed: " + err.Error())
+			return m, m.setStatus("Save failed")
 		}
 
 		// Copy to clipboard as well
 		if err := clipboard.WriteAll(m.Password); err != nil {
-			return m, m.setStatus("✓ Saved to passwords.csv (clipboard copy failed)")
+			return m, m.setStatus("Saved (no clipboard)")
 		}
 
 		m.CurrentView = ViewMain
@@ -177,7 +177,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		m.SiteInput.SetValue("")
 		m.UsernameInput.Blur()
 		m.UsernameInput.SetValue("")
-		return m, m.setStatus("Saved to passwords.csv & copied to clipboard")
+		return m, m.setStatus("Saved & copied")
 
 	case ViewConfirmQuit:
 		return m, tea.Quit
@@ -186,14 +186,14 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		// Parse and validate length
 		lengthStr := strings.TrimSpace(m.LengthInput.Value())
 		if lengthStr == "" {
-			return m, m.setStatus("Length cannot be empty")
+			return m, m.setStatus("Empty length")
 		}
 		newLength, err := strconv.Atoi(lengthStr)
 		if err != nil {
-			return m, m.setStatus("Invalid length: must be a number")
+			return m, m.setStatus("Invalid length")
 		}
 		if newLength < 4 || newLength > 128 {
-			return m, m.setStatus("Length must be between 4 and 128")
+			return m, m.setStatus("Length out of range")
 		}
 		m.Length = newLength
 		m.CurrentView = ViewWelcome
@@ -207,9 +207,9 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			if len(record) >= 3 {
 				password := record[2]
 				if err := clipboard.WriteAll(password); err != nil {
-					return m, m.setStatus("Failed to copy: " + err.Error())
+					return m, m.setStatus("Copy failed")
 				}
-				return m, m.setStatus("Password copied to clipboard")
+				return m, m.setStatus("Copied")
 			}
 		}
 	}
@@ -223,7 +223,7 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 
 	case ViewMain:
 		m.CurrentView = ViewWelcome
-		return m, m.setStatus("Back to main menu")
+		return m, m.setStatus("Back")
 
 	case ViewSave:
 		m.CurrentView = ViewWelcome
@@ -231,7 +231,7 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 		m.SiteInput.SetValue("")
 		m.UsernameInput.Blur()
 		m.UsernameInput.SetValue("")
-		return m, m.setStatus("Save cancelled")
+		return m, m.setStatus("Cancelled")
 
 	case ViewConfirmQuit:
 		m.CurrentView = ViewWelcome
@@ -243,12 +243,12 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 		m.FilterInput.SetValue("")
 		m.FilterText = ""
 		m.Cursor = 0
-		return m, m.setStatus("Back to main menu")
+		return m, m.setStatus("Back")
 
 	case ViewSettings:
 		m.CurrentView = ViewWelcome
 		m.LengthInput.Blur()
-		return m, m.setStatus("Settings cancelled")
+		return m, m.setStatus("Cancelled")
 	}
 
 	return m, nil
@@ -258,10 +258,10 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 func (m Model) refreshPassword() (tea.Model, tea.Cmd) {
 	newPass, err := password.GeneratePassword(m.Length, m.IncludeLower, m.IncludeUpper, m.IncludeNumbers, m.IncludeSymbols)
 	if err != nil {
-		return m, m.setStatus("Error: " + err.Error())
+		return m, m.setStatus("Error")
 	}
 	m.Password = newPass
-	return m, m.setStatus("Password refreshed")
+	return m, m.setStatus("Refreshed")
 }
 
 // startSave transitions to the save view
@@ -293,19 +293,19 @@ func (m Model) startGenerate() (tea.Model, tea.Cmd) {
 	newPass, err := password.GeneratePassword(m.Length, m.IncludeLower, m.IncludeUpper, m.IncludeNumbers, m.IncludeSymbols)
 	if err != nil {
 		m.Password = ""
-		return m, m.setStatus("Error: " + err.Error())
+		return m, m.setStatus("Error")
 	}
 	m.Password = newPass
 	m.CurrentView = ViewMain
-	return m, m.setStatus("Generated " + strconv.Itoa(m.Length) + "-character password")
+	return m, m.setStatus("Generated")
 }
 
 // copyToClipboard copies the current password to clipboard
 func (m Model) copyToClipboard() (tea.Model, tea.Cmd) {
 	if err := clipboard.WriteAll(m.Password); err != nil {
-		return m, m.setStatus("Failed to copy: " + err.Error())
+		return m, m.setStatus("Copy failed")
 	}
-	return m, m.setStatus("Copied to clipboard")
+	return m, m.setStatus("Copied")
 }
 
 // confirmQuit transitions to quit confirmation
