@@ -27,13 +27,6 @@ func (m Model) View() string {
 		s.WriteString(infoStyle.Render("Use arrow keys or numbers to navigate • [Enter] to select"))
 		s.WriteString("\n")
 
-	case ViewConfirmQuit:
-		s.WriteString(titleStyle.Render("Confirm Quit"))
-		s.WriteString("\n\n")
-		s.WriteString("Are you sure you want to quit?\n\n")
-		s.WriteString(infoStyle.Render("Press [Y] to quit • [N] or [Esc] to cancel"))
-		s.WriteString("\n")
-
 	case ViewSave:
 		s.WriteString(titleStyle.Render("Save Password"))
 		s.WriteString("\n\n")
@@ -50,15 +43,13 @@ func (m Model) View() string {
 		s.WriteString("\n\n")
 
 		if m.Password != "" {
-			s.WriteString("Generated Password:\n")
-			passwordBox := boxStyle.Width(66).Render(passwordStyle.Render(m.Password))
-			s.WriteString(passwordBox)
+			s.WriteString(fmt.Sprintf("Generated Password: %s", m.Password))
 			s.WriteString("\n\n")
-			s.WriteString(infoStyle.Render(fmt.Sprintf("Length: %d characters", m.Length)))
+			s.WriteString(fmt.Sprintf("Length: %d characters", m.Length))
 			s.WriteString("\n\n")
 		}
 
-		s.WriteString(infoStyle.Render("Press [R] to refresh • [C] to copy • [S] to save & copy • [L] to list • [Esc] to menu • [Q] to quit"))
+		s.WriteString(infoStyle.Render("Press [R] to refresh • [C] to copy • [S] to save & copy • [Esc] to menu"))
 
 	case ViewList:
 		s.WriteString(titleStyle.Render("Saved Passwords"))
@@ -69,15 +60,14 @@ func (m Model) View() string {
 		var table strings.Builder
 
 		// Headers
-		headerLine := fmt.Sprintf("  %-18s | %-18s | %-20s", "Site", "Username", "Password")
-		table.WriteString(infoStyle.Render(headerLine))
+		table.WriteString(infoStyle.Render(fmt.Sprintf("  %-18s   %-18s   %-20s", "Site", "Username", "Password")))
 		table.WriteString("\n")
 
 		// Filter passwords
 		filtered := m.filterPasswords()
 
 		if len(filtered) == 0 {
-			table.WriteString(infoStyle.Render("No passwords found."))
+			table.WriteString(infoStyle.Render("\n  No passwords found."))
 			table.WriteString("\n")
 		} else {
 			for i, record := range filtered {
@@ -94,9 +84,9 @@ func (m Model) View() string {
 					if len(userTrunc) > 18 {
 						userTrunc = userTrunc[:15] + "..."
 					}
-					line := fmt.Sprintf("%-18s | %-18s | %-5s", siteTrunc, userTrunc, strings.Repeat("•", 5))
+					line := fmt.Sprintf("%-18s   %-18s   %-5s", siteTrunc, userTrunc, strings.Repeat("•", 5))
 					if i == m.Cursor {
-						table.WriteString(selectedStyle.Render("▶ " + line))
+						table.WriteString(selectedStyle.Render("> " + line))
 					} else {
 						table.WriteString("  " + line)
 					}

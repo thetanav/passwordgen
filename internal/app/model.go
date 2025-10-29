@@ -25,18 +25,13 @@ var (
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("15")).
-			Align(lipgloss.Center).
+			Align(lipgloss.Left).
 			Width(70)
 
 	boxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("250")).
 			Padding(1, 2)
-
-	passwordStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("51")).
-			Bold(true).
-			Align(lipgloss.Center)
 
 	infoStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("39"))
