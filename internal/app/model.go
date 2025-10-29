@@ -14,7 +14,6 @@ type ViewState string
 
 const (
 	ViewWelcome     ViewState = "welcome"
-	ViewSettings    ViewState = "settings"
 	ViewMain        ViewState = "main"
 	ViewSave        ViewState = "save"
 	ViewList        ViewState = "list"
@@ -56,7 +55,6 @@ var (
 // Model holds the application state
 type Model struct {
 	Password       string
-	LengthInput    textinput.Model
 	SiteInput      textinput.Model
 	UsernameInput  textinput.Model
 	FilterInput    textinput.Model
@@ -71,7 +69,7 @@ type Model struct {
 }
 
 // filterPasswords filters the saved passwords based on the filter text
-func (m Model) FilterPasswords() [][]string {
+func (m Model) filterPasswords() [][]string {
 	if m.FilterText == "" {
 		return m.SavedPasswords
 	}
@@ -101,7 +99,7 @@ func clearStatusAfterDelay() tea.Cmd {
 }
 
 // setStatus sets a temporary status message
-func (m *Model) SetStatus(msg string) tea.Cmd {
+func (m *Model) setStatus(msg string) tea.Cmd {
 	m.StatusMessage = msg
 	m.StatusExpiry = time.Now().Add(3 * time.Second)
 	return clearStatusAfterDelay()
@@ -109,14 +107,6 @@ func (m *Model) SetStatus(msg string) tea.Cmd {
 
 // initialModel creates the initial application state
 func InitialModel() Model {
-	// Length input for settings view
-	lengthInput := textinput.New()
-	lengthInput.Placeholder = "16"
-	lengthInput.Focus()
-	lengthInput.Prompt = "Password Length: "
-	lengthInput.CharLimit = 3
-	lengthInput.Width = 20
-
 	// Site name input for save view
 	siteInput := textinput.New()
 	siteInput.Placeholder = "example.com"
@@ -139,7 +129,6 @@ func InitialModel() Model {
 	filterInput.Width = 40
 
 	return Model{
-		LengthInput:   lengthInput,
 		SiteInput:     siteInput,
 		UsernameInput: usernameInput,
 		FilterInput:   filterInput,

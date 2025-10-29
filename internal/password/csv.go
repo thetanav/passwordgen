@@ -17,12 +17,11 @@ func SavePasswordToCSV(siteName, username, password string) error {
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
 	record := []string{siteName, username, password}
 	if err := writer.Write(record); err != nil {
 		return fmt.Errorf("failed to write record: %w", err)
 	}
+	writer.Flush()
 
 	return nil
 }

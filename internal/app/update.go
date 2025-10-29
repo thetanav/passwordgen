@@ -52,9 +52,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.CurrentView == ViewMain && m.Password != "" {
 				return m.startSave()
 			}
-			if m.CurrentView == ViewWelcome {
-				return m.startSettings()
-			}
 
 		case "4", "q":
 			if m.CurrentView == ViewWelcome {
@@ -88,11 +85,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "down":
-			if m.CurrentView == ViewWelcome && m.MenuCursor < 3 {
+			if m.CurrentView == ViewWelcome && m.MenuCursor < 2 {
 				m.MenuCursor++
 				return m, nil
 			} else if m.CurrentView == ViewList {
-				filtered := m.FilterPasswords()
+				filtered := m.filterPasswords()
 				if m.Cursor < len(filtered)-1 {
 					m.Cursor++
 				}
@@ -109,8 +106,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Update the appropriate text input based on current view
 	switch m.CurrentView {
-	case ViewSettings:
-		m.LengthInput, cmd = m.LengthInput.Update(msg)
 	case ViewSave:
 		if m.SiteInput.Focused() {
 			m.SiteInput, cmd = m.SiteInput.Update(msg)
@@ -139,44 +134,23 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		case 1:
 			return m.startList()
 		case 2:
-			return m.startSettings()
-		case 3:
 			return m, tea.Quit
 		}
-
-	case ViewSettings:
-		inputLen, err := strconv.Atoi(m.LengthInput.Value())
-		if err != nil || inputLen < 4 || inputLen > 128 {
-			inputLen = 16
-			m.StatusMessage = "Invalid length. Using default: 16"
-		}
-		m.Length = inputLen
-
-		newPass, err := password.GeneratePassword(m.Length)
-		if err != nil {
-			m.Password = ""
-			return m, m.SetStatus("Error: " + err.Error())
-		}
-
-		m.Password = newPass
-		m.CurrentView = ViewMain
-		m.LengthInput.Blur()
-		return m, m.SetStatus("Generated " + strconv.Itoa(m.Length) + "-character password")
 
 	case ViewSave:
 		siteName := strings.TrimSpace(m.SiteInput.Value())
 		username := strings.TrimSpace(m.UsernameInput.Value())
 		if siteName == "" {
-			return m, m.SetStatus("Site name cannot be empty")
+			return m, m.setStatus("Site name cannot be empty")
 		}
 
 		if err := password.SavePasswordToCSV(siteName, username, m.Password); err != nil {
-			return m, m.SetStatus("Save failed: " + err.Error())
+			return m, m.setStatus("Save failed: " + err.Error())
 		}
 
 		// Copy to clipboard as well
 		if err := clipboard.WriteAll(m.Password); err != nil {
-			return m, m.SetStatus("✓ Saved to passwords.csv (clipboard copy failed)")
+			return m, m.setStatus("✓ Saved to passwords.csv (clipboard copy failed)")
 		}
 
 		m.CurrentView = ViewMain
@@ -184,21 +158,21 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		m.SiteInput.SetValue("")
 		m.UsernameInput.Blur()
 		m.UsernameInput.SetValue("")
-		return m, m.SetStatus("Saved to passwords.csv & copied to clipboard")
+		return m, m.setStatus("Saved to passwords.csv & copied to clipboard")
 
 	case ViewConfirmQuit:
 		return m, tea.Quit
 
 	case ViewList:
-		filtered := m.FilterPasswords()
+		filtered := m.filterPasswords()
 		if len(filtered) > 0 && m.Cursor >= 0 && m.Cursor < len(filtered) {
 			record := filtered[m.Cursor]
 			if len(record) >= 3 {
 				password := record[2]
 				if err := clipboard.WriteAll(password); err != nil {
-					return m, m.SetStatus("Failed to copy: " + err.Error())
+					return m, m.setStatus("Failed to copy: " + err.Error())
 				}
-				return m, m.SetStatus("Password copied to clipboard")
+				return m, m.setStatus("Password copied to clipboard")
 			}
 		}
 	}
@@ -209,14 +183,10 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 // handleEscape processes the Esc key for different views
 func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 	switch m.CurrentView {
-	case ViewSettings:
-		m.CurrentView = ViewWelcome
-		m.LengthInput.Blur()
-		return m, m.SetStatus("Back to main menu")
 
 	case ViewMain:
 		m.CurrentView = ViewWelcome
-		return m, m.SetStatus("Back to main menu")
+		return m, m.setStatus("Back to main menu")
 
 	case ViewSave:
 		m.CurrentView = ViewMain
@@ -224,7 +194,7 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 		m.SiteInput.SetValue("")
 		m.UsernameInput.Blur()
 		m.UsernameInput.SetValue("")
-		return m, m.SetStatus("Save cancelled")
+		return m, m.setStatus("Save cancelled")
 
 	case ViewConfirmQuit:
 		m.CurrentView = ViewWelcome
@@ -236,7 +206,7 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 		m.FilterInput.SetValue("")
 		m.FilterText = ""
 		m.Cursor = 0
-		return m, m.SetStatus("Back to main menu")
+		return m, m.setStatus("Back to main menu")
 	}
 
 	return m, nil
@@ -246,10 +216,10 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 func (m Model) refreshPassword() (tea.Model, tea.Cmd) {
 	newPass, err := password.GeneratePassword(m.Length)
 	if err != nil {
-		return m, m.SetStatus("Error: " + err.Error())
+		return m, m.setStatus("Error: " + err.Error())
 	}
 	m.Password = newPass
-	return m, m.SetStatus("Password refreshed")
+	return m, m.setStatus("Password refreshed")
 }
 
 // startSave transitions to the save view
@@ -276,28 +246,24 @@ func (m Model) startList() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// startGenerate transitions to password generation (settings view)
+// startGenerate generates a password and transitions to main view
 func (m Model) startGenerate() (tea.Model, tea.Cmd) {
-	m.CurrentView = ViewSettings
-	m.LengthInput.SetValue("")
-	m.LengthInput.Focus()
-	return m, nil
-}
-
-// startSettings transitions to the settings view
-func (m Model) startSettings() (tea.Model, tea.Cmd) {
-	m.CurrentView = ViewSettings
-	m.LengthInput.SetValue("")
-	m.LengthInput.Focus()
-	return m, nil
+	newPass, err := password.GeneratePassword(m.Length)
+	if err != nil {
+		m.Password = ""
+		return m, m.setStatus("Error: " + err.Error())
+	}
+	m.Password = newPass
+	m.CurrentView = ViewMain
+	return m, m.setStatus("Generated " + strconv.Itoa(m.Length) + "-character password")
 }
 
 // copyToClipboard copies the current password to clipboard
 func (m Model) copyToClipboard() (tea.Model, tea.Cmd) {
 	if err := clipboard.WriteAll(m.Password); err != nil {
-		return m, m.SetStatus("Failed to copy: " + err.Error())
+		return m, m.setStatus("Failed to copy: " + err.Error())
 	}
-	return m, m.SetStatus("Copied to clipboard")
+	return m, m.setStatus("Copied to clipboard")
 }
 
 // confirmQuit transitions to quit confirmation

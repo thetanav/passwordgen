@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
-	"strings"
 )
 
 // Character sets for password generation
@@ -30,22 +29,15 @@ func GeneratePassword(length int) (string, error) {
 		return "", fmt.Errorf("password length must not exceed %d", maxPasswordLength)
 	}
 
-	// Build character set
-	var charset strings.Builder
-	charset.WriteString(lowercase)
-	charset.WriteString(uppercase)
-	charset.WriteString(numbers)
-	charset.WriteString(symbols)
-	charsetStr := charset.String()
+	charset := lowercase + uppercase + numbers + symbols
 
-	// Generate random password
-	password := make([]rune, length)
+	password := make([]byte, length)
 	for i := range password {
-		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(charsetStr))))
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
 		if err != nil {
 			return "", fmt.Errorf("failed to generate random number: %w", err)
 		}
-		password[i] = rune(charsetStr[n.Int64()])
+		password[i] = charset[n.Int64()]
 	}
 
 	return string(password), nil

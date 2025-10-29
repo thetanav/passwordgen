@@ -14,7 +14,7 @@ func (m Model) View() string {
 		s.WriteString(titleStyle.Render("Secure Password Manager"))
 		s.WriteString("\n\n")
 
-		options := []string{"1. Generate New Password", "2. View Saved Passwords", "3. Settings", "4. Quit Application"}
+		options := []string{"1. Generate New Password", "2. View Saved Passwords", "3. Quit Application"}
 		for i, option := range options {
 			if i == m.MenuCursor {
 				s.WriteString(selectedStyle.Render("> " + option))
@@ -33,16 +33,6 @@ func (m Model) View() string {
 		s.WriteString("Are you sure you want to quit?\n\n")
 		s.WriteString(infoStyle.Render("Press [Y] to quit • [N] or [Esc] to cancel"))
 		s.WriteString("\n")
-
-	case ViewSettings:
-		s.WriteString(titleStyle.Render("Password Generator"))
-		s.WriteString("\n\n")
-		s.WriteString(m.LengthInput.View())
-		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render(fmt.Sprintf("Range: %d-%d characters (default: %d)",
-			4, 128, 16)))
-		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render("Press [Enter] to generate • [Esc] for default • [Q] to quit"))
 
 	case ViewSave:
 		s.WriteString(titleStyle.Render("Save Password"))
@@ -84,7 +74,7 @@ func (m Model) View() string {
 		table.WriteString(infoStyle.Render("  " + strings.Repeat("-", 62) + "\n"))
 
 		// Filter passwords
-		filtered := m.FilterPasswords()
+		filtered := m.filterPasswords()
 
 		if len(filtered) == 0 {
 			table.WriteString(infoStyle.Render("No passwords found."))
