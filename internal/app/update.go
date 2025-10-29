@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -52,8 +53,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.CurrentView == ViewMain && m.Password != "" {
 				return m.startSave()
 			}
+			if m.CurrentView == ViewWelcome {
+				return m.startSettings()
+			}
 
-		case "4", "q":
+		case "4":
 			if m.CurrentView == ViewWelcome {
 				return m.confirmQuit()
 			}
@@ -61,6 +65,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "c":
 			if m.CurrentView == ViewMain && m.Password != "" {
 				return m.copyToClipboard()
+			}
+
+		case " ":
+			if m.CurrentView == ViewSettings {
+				return m.toggleSetting()
 			}
 
 		case "tab":
@@ -82,10 +91,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.CurrentView == ViewList && m.Cursor > 0 {
 				m.Cursor--
 				return m, nil
+			} else if m.CurrentView == ViewSettings && m.SettingsCursor > 0 {
+				m.SettingsCursor--
+				return m, nil
 			}
 
 		case "down":
-			if m.CurrentView == ViewWelcome && m.MenuCursor < 2 {
+			if m.CurrentView == ViewWelcome && m.MenuCursor < 3 {
 				m.MenuCursor++
 				return m, nil
 			} else if m.CurrentView == ViewList {
@@ -93,6 +105,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Cursor < len(filtered)-1 {
 					m.Cursor++
 				}
+				return m, nil
+			} else if m.CurrentView == ViewSettings && m.SettingsCursor < 3 {
+				m.SettingsCursor++
 				return m, nil
 			}
 		}
@@ -119,6 +134,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.FilterText != oldFilter {
 			m.Cursor = 0 // Reset cursor when filter changes
 		}
+	case ViewSettings:
+		m.LengthInput, cmd = m.LengthInput.Update(msg)
 	}
 
 	return m, cmd
@@ -134,6 +151,8 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		case 1:
 			return m.startList()
 		case 2:
+			return m.startSettings()
+		case 3:
 			return m, tea.Quit
 		}
 
@@ -163,6 +182,24 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 	case ViewConfirmQuit:
 		return m, tea.Quit
 
+	case ViewSettings:
+		// Parse and validate length
+		lengthStr := strings.TrimSpace(m.LengthInput.Value())
+		if lengthStr == "" {
+			return m, m.setStatus("Length cannot be empty")
+		}
+		newLength, err := strconv.Atoi(lengthStr)
+		if err != nil {
+			return m, m.setStatus("Invalid length: must be a number")
+		}
+		if newLength < 4 || newLength > 128 {
+			return m, m.setStatus("Length must be between 4 and 128")
+		}
+		m.Length = newLength
+		m.CurrentView = ViewWelcome
+		m.LengthInput.Blur()
+		return m, m.setStatus("Settings saved")
+
 	case ViewList:
 		filtered := m.filterPasswords()
 		if len(filtered) > 0 && m.Cursor >= 0 && m.Cursor < len(filtered) {
@@ -189,7 +226,7 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 		return m, m.setStatus("Back to main menu")
 
 	case ViewSave:
-		m.CurrentView = ViewMain
+		m.CurrentView = ViewWelcome
 		m.SiteInput.Blur()
 		m.SiteInput.SetValue("")
 		m.UsernameInput.Blur()
@@ -207,14 +244,19 @@ func (m Model) handleEscape() (tea.Model, tea.Cmd) {
 		m.FilterText = ""
 		m.Cursor = 0
 		return m, m.setStatus("Back to main menu")
+
+	case ViewSettings:
+		m.CurrentView = ViewWelcome
+		m.LengthInput.Blur()
+		return m, m.setStatus("Settings cancelled")
 	}
 
 	return m, nil
 }
 
-// refreshPassword generates a new password with the current length
+// refreshPassword generates a new password with the current settings
 func (m Model) refreshPassword() (tea.Model, tea.Cmd) {
-	newPass, err := password.GeneratePassword(m.Length)
+	newPass, err := password.GeneratePassword(m.Length, m.IncludeLower, m.IncludeUpper, m.IncludeNumbers, m.IncludeSymbols)
 	if err != nil {
 		return m, m.setStatus("Error: " + err.Error())
 	}
@@ -248,7 +290,7 @@ func (m Model) startList() (tea.Model, tea.Cmd) {
 
 // startGenerate generates a password and transitions to main view
 func (m Model) startGenerate() (tea.Model, tea.Cmd) {
-	newPass, err := password.GeneratePassword(m.Length)
+	newPass, err := password.GeneratePassword(m.Length, m.IncludeLower, m.IncludeUpper, m.IncludeNumbers, m.IncludeSymbols)
 	if err != nil {
 		m.Password = ""
 		return m, m.setStatus("Error: " + err.Error())
@@ -269,5 +311,29 @@ func (m Model) copyToClipboard() (tea.Model, tea.Cmd) {
 // confirmQuit transitions to quit confirmation
 func (m Model) confirmQuit() (tea.Model, tea.Cmd) {
 	m.CurrentView = ViewConfirmQuit
+	return m, nil
+}
+
+// startSettings transitions to the settings view
+func (m Model) startSettings() (tea.Model, tea.Cmd) {
+	m.CurrentView = ViewSettings
+	m.LengthInput.SetValue(fmt.Sprintf("%d", m.Length))
+	m.LengthInput.Focus()
+	m.SettingsCursor = 0
+	return m, nil
+}
+
+// toggleSetting toggles the selected setting
+func (m Model) toggleSetting() (tea.Model, tea.Cmd) {
+	switch m.SettingsCursor {
+	case 0:
+		m.IncludeLower = !m.IncludeLower
+	case 1:
+		m.IncludeUpper = !m.IncludeUpper
+	case 2:
+		m.IncludeNumbers = !m.IncludeNumbers
+	case 3:
+		m.IncludeSymbols = !m.IncludeSymbols
+	}
 	return m, nil
 }

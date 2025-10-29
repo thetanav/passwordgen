@@ -17,6 +17,7 @@ const (
 	ViewMain        ViewState = "main"
 	ViewSave        ViewState = "save"
 	ViewList        ViewState = "list"
+	ViewSettings    ViewState = "settings"
 	ViewConfirmQuit ViewState = "confirm_quit"
 )
 
@@ -47,20 +48,34 @@ var (
 			Bold(true)
 )
 
+// checkbox returns a checkbox string based on the boolean value
+func checkbox(checked bool) string {
+	if checked {
+		return "✓"
+	}
+	return " "
+}
+
 // Model holds the application state
 type Model struct {
 	Password       string
 	SiteInput      textinput.Model
 	UsernameInput  textinput.Model
 	FilterInput    textinput.Model
+	LengthInput    textinput.Model
 	CurrentView    ViewState
 	Length         int
+	IncludeUpper   bool
+	IncludeLower   bool
+	IncludeNumbers bool
+	IncludeSymbols bool
 	StatusMessage  string
 	StatusExpiry   time.Time
 	SavedPasswords [][]string
 	FilterText     string
 	Cursor         int
 	MenuCursor     int
+	SettingsCursor int
 }
 
 // filterPasswords filters the saved passwords based on the filter text
@@ -123,12 +138,25 @@ func InitialModel() Model {
 	filterInput.CharLimit = 100
 	filterInput.Width = 40
 
+	// Length input for settings view
+	lengthInput := textinput.New()
+	lengthInput.Placeholder = "16"
+	lengthInput.Prompt = "Password Length: "
+	lengthInput.CharLimit = 3
+	lengthInput.Width = 10
+
 	return Model{
-		SiteInput:     siteInput,
-		UsernameInput: usernameInput,
-		FilterInput:   filterInput,
-		CurrentView:   ViewWelcome,
-		Length:        16, // defaultPasswordLength
-		MenuCursor:    0,
+		SiteInput:      siteInput,
+		UsernameInput:  usernameInput,
+		FilterInput:    filterInput,
+		LengthInput:    lengthInput,
+		CurrentView:    ViewWelcome,
+		Length:         16,
+		IncludeUpper:   true,
+		IncludeLower:   true,
+		IncludeNumbers: true,
+		IncludeSymbols: true,
+		MenuCursor:     0,
+		SettingsCursor: 0,
 	}
 }

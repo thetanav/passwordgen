@@ -14,7 +14,7 @@ func (m Model) View() string {
 		s.WriteString(titleStyle.Render("Secure Password Manager"))
 		s.WriteString("\n\n")
 
-		options := []string{"1. Generate New Password", "2. View Saved Passwords", "3. Quit Application"}
+		options := []string{"1. Generate New Password", "2. View Saved Passwords", "3. Settings", "4. Quit Application"}
 		for i, option := range options {
 			if i == m.MenuCursor {
 				s.WriteString(selectedStyle.Render("> " + option))
@@ -36,7 +36,7 @@ func (m Model) View() string {
 		s.WriteString("\n\n")
 		s.WriteString(successStyle.Render("Password copied to clipboard"))
 		s.WriteString("\n\n")
-		s.WriteString(infoStyle.Render("Press [Tab] to switch fields • [Enter] to save • [Esc] to cancel"))
+		s.WriteString(infoStyle.Render("Press [Tab] to switch fields • [Enter] to save • [Esc] to main menu"))
 
 	case ViewMain:
 		s.WriteString(titleStyle.Render("Secure Password Generator"))
@@ -49,7 +49,7 @@ func (m Model) View() string {
 			s.WriteString("\n\n")
 		}
 
-		s.WriteString(infoStyle.Render("Press [R] to refresh • [C] to copy • [S] to save & copy • [Esc] to menu"))
+		s.WriteString(infoStyle.Render("Press [R] to refresh • [C] to copy • [S] to save & copy • [Esc] to main menu"))
 
 	case ViewList:
 		s.WriteString(titleStyle.Render("Saved Passwords"))
@@ -98,6 +98,30 @@ func (m Model) View() string {
 		s.WriteString(boxStyle.Width(70).Render(table.String()))
 		s.WriteString("\n\n")
 		s.WriteString(infoStyle.Render("Press [↑/↓] to navigate • [Enter] to copy • [Esc] to menu"))
+
+	case ViewSettings:
+		s.WriteString(titleStyle.Render("Password Settings"))
+		s.WriteString("\n\n")
+		s.WriteString(m.LengthInput.View())
+		s.WriteString("\n\n")
+
+		options := []string{
+			fmt.Sprintf("[%s] Include Lowercase (a-z)", checkbox(m.IncludeLower)),
+			fmt.Sprintf("[%s] Include Uppercase (A-Z)", checkbox(m.IncludeUpper)),
+			fmt.Sprintf("[%s] Include Numbers (0-9)", checkbox(m.IncludeNumbers)),
+			fmt.Sprintf("[%s] Include Symbols (!@#$%%^&*)", checkbox(m.IncludeSymbols)),
+		}
+
+		for i, option := range options {
+			if i == m.SettingsCursor {
+				s.WriteString(selectedStyle.Render("> " + option))
+			} else {
+				s.WriteString("  " + option)
+			}
+			s.WriteString("\n")
+		}
+		s.WriteString("\n")
+		s.WriteString(infoStyle.Render("Press [↑/↓] to navigate • [Space] to toggle • [Enter] to save • [Esc] to main menu"))
 	}
 
 	// Add status message if present
