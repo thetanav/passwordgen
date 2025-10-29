@@ -69,9 +69,9 @@ func (m Model) View() string {
 		var table strings.Builder
 
 		// Headers
-		headerLine := fmt.Sprintf("%-18s | %-18s | %-20s", "Site", "Username", "Password")
-		table.WriteString(infoStyle.Render("  " + headerLine + "\n"))
-		table.WriteString(infoStyle.Render("  " + strings.Repeat("-", 62) + "\n"))
+		headerLine := fmt.Sprintf("  %-18s | %-18s | %-20s", "Site", "Username", "Password")
+		table.WriteString(infoStyle.Render(headerLine))
+		table.WriteString("\n")
 
 		// Filter passwords
 		filtered := m.filterPasswords()
@@ -94,7 +94,7 @@ func (m Model) View() string {
 					if len(userTrunc) > 18 {
 						userTrunc = userTrunc[:15] + "..."
 					}
-					line := fmt.Sprintf("%-18s | %-18s | %-20s", siteTrunc, userTrunc, strings.Repeat("•", 20))
+					line := fmt.Sprintf("%-18s | %-18s | %-5s", siteTrunc, userTrunc, strings.Repeat("•", 5))
 					if i == m.Cursor {
 						table.WriteString(selectedStyle.Render("▶ " + line))
 					} else {
@@ -106,8 +106,8 @@ func (m Model) View() string {
 		}
 
 		s.WriteString(boxStyle.Width(70).Render(table.String()))
-		s.WriteString("\n")
-		s.WriteString(infoStyle.Render("Press [↑/↓] to navigate • [Enter] to copy • [Esc] to menu • [Q] to quit"))
+		s.WriteString("\n\n")
+		s.WriteString(infoStyle.Render("Press [↑/↓] to navigate • [Enter] to copy • [Esc] to menu"))
 	}
 
 	// Add status message if present
