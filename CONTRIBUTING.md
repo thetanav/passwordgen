@@ -12,8 +12,8 @@ Thank you for your interest in contributing to the Secure Password Manager! This
 ### Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/my-cli-app.git`
-3. Change to the project directory: `cd my-cli-app`
+2. Clone your fork: `git clone https://github.com/thetanav/passwordgen.git`
+3. Change to the project directory: `cd passwordgen`
 4. Install dependencies: `go mod download`
 5. Build the project: `go build ./cmd/passwordgen`
 
