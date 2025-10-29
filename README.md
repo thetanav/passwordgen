@@ -11,51 +11,10 @@ A modern, secure password generator built with Go and Bubbletea. Generate strong
 - **Modern UI**: Beautiful terminal interface with colors and styling
 - **Clipboard Integration**: Automatic clipboard copying for convenience
 
-## Usage
-
-### Basic Usage
-
-1. **Welcome Screen**: Choose what you want to do from the main menu
-2. **Generate Password**: Select 'G' to create a new password (then set length)
-3. **View Saved Passwords**: Select 'L' to browse your saved passwords
-4. **Settings**: Select 'S' to configure default settings
-5. **Save Passwords**: After generating, use 'S' to save with site name and username
-
-### Key Bindings
-
-#### Welcome Screen
-- `G` - Generate new password
-- `L` - View saved passwords
-- `S` - Open settings
-- `Q` - Quit application
-
-#### Settings View
-- `Enter` - Generate password with specified length
-- `Esc` - Return to main menu
-- `Q` - Quit
-
-#### Main View (Password Display)
-- `R` - Refresh/Generate new password
-- `C` - Copy current password to clipboard
-- `S` - Save current password
-- `L` - List saved passwords
-- `Esc` - Return to main menu
-- `Q` - Quit application
-
-#### Save View
-- `Tab` - Switch between site name and username fields
-- `Enter` - Save password
-- `Esc` - Cancel save
-
-#### List View
-- `↑/↓` - Navigate through saved passwords
-- `Enter` - Copy selected password to clipboard
-- `Esc` - Return to main menu
-- Type to filter passwords by site or username
-
 ## Data Storage
 
 Passwords are stored in `passwords.csv` in the following format:
+
 ```
 site_name,username,password
 example.com,user@example.com,generated_password
@@ -63,8 +22,28 @@ example.com,user@example.com,generated_password
 
 ## Installation
 
+### Option 1: One-liner install (recommended)
+
 ```bash
-go build -o passwordgen ./cmd/passwordgen
+curl -sSL https://raw.githubusercontent.com/thetanav/passwordgen/main/install.sh | bash
+```
+
+This will download the source code, build the application, and install it to a directory in your PATH.
+
+### Option 2: Using the install script locally
+
+If you have the source code:
+
+```bash
+./install.sh
+```
+
+### Option 3: Manual build
+
+```bash
+go build -o passwordgen .
+# Then move passwordgen to a directory in your PATH, e.g.:
+# sudo mv passwordgen /usr/local/bin/
 ```
 
 ## Dependencies
